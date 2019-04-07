@@ -4,13 +4,15 @@
 
 usage()
 {
-  echo "usage: hetrodyne -i file -n file | [-h]"
+  echo "usage: hetrodyne -i file [-f] [-g] [-r] | [-h]"
 }
 
 #Command vars
 input=
-noise=
 output="output.wav"
+frequency=32000
+gain=-0.9
+rate=192000
 
 #MAIN
 
@@ -19,11 +21,17 @@ while [ "$1" != "" ]; do
       -i | --input )      shift
                           input=$1
                           ;;
-      -n | --noise )      shift
-                          noise=$1
-                          ;;
       -o | --output )     shift
                           output=$1
+                          ;;
+      -f | --frequency )  shift
+                          frequency=$1
+                          ;;
+      -g | --gain)        shift
+                          gain=$1
+                          ;;
+      -r | --rate)        shift
+                          rate=$1
                           ;;
       -h | --help )       usage
                           exit
@@ -41,11 +49,24 @@ then
   exit 1
 fi
 
-if [ $noise == "" ];
-then
-  echo "No noise profile specified"
-  usage
-  exit 1
-fi
+# if [ $noise == "" ];
+# then
+#   echo "No noise profile specified"
+#   usage
+#   exit 1
+# fi
 
-sox $input -t wav - gain -n -0.9 | sox -t wav - -t wav - noisered $noise 0.06 | sox -m -t wav -v 1 - -v 1 32k.wav -v 1 32k.wav $output
+duration=$(soxi -D $input)
+
+sox -V -r $rate -n -b 16 -c 2 /tmp/signal.wav synth $duration sin $frequency vol 5dB
+
+echo $gain
+
+sox $input -t wav - sinc $(expr $frequency / 1000 - 5)k | sox -t wav - -t wav - gain -n $gain | sox -m -t wav -v 1 - -t wav -v 1 /tmp/signal.wav $output
+
+rm /tmp/signal.wav
+
+#What is important
+
+#We use -m becuase that merges files
+#We have to use -v 1 because that ensures that the volume dosn't decrease
