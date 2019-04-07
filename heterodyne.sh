@@ -34,18 +34,18 @@ while [ "$1" != "" ]; do
     shift
 done
 
-if [$input == ""];
+if [ $input == "" ];
 then
   echo "No input file specified"
   usage
   exit 1
 fi
 
-if [$noise == ""];
+if [ $noise == "" ];
 then
   echo "No noise profile specified"
   usage
   exit 1
 fi
 
-sox $input -t wav - gain -n -0.9 | sox -t wav - -t wav - noisered $noise 0.15 | sox -M -t wav - 32k.wav $output
+sox $input -t wav - gain -n -0.9 | sox -t wav - -t wav - noisered $noise 0.06 | sox -m -t wav -v 1 - -v 1 32k.wav -v 1 32k.wav $output
