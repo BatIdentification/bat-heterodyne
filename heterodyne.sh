@@ -4,7 +4,7 @@
 
 usage()
 {
-  echo "usage: hetrodyne -i file [-f] [-g] [-r] | [-h]"
+  echo "usage: hetrodyne -i file [-f] [-g] [-r] [-o] | [-h]"
 }
 
 #Command vars
@@ -42,7 +42,7 @@ while [ "$1" != "" ]; do
     shift
 done
 
-if [ $input == "" ];
+if [ "$input" == "" ];
 then
   echo "No input file specified"
   usage
