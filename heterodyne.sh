@@ -4,7 +4,7 @@
 
 usage()
 {
-  echo "usage: hetrodyne -i file [-f] [-g] [-r] [-o] | [-h]"
+  echo "usage: hetrodyne -i file [-f] [-g] [-r] [-o] [-p] | [-h]"
 }
 
 #Command vars
@@ -13,6 +13,7 @@ output="output.wav"
 frequency=32000
 gain=-0.9
 rate=192000
+play="false"
 
 #MAIN
 
@@ -32,6 +33,9 @@ while [ "$1" != "" ]; do
                           ;;
       -r | --rate)        shift
                           rate=$1
+                          ;;
+      -p | --play)        shift
+                          play="true"
                           ;;
       -h | --help )       usage
                           exit
@@ -60,7 +64,12 @@ duration=$(soxi -D $input)
 
 sox -V -r $rate -n -b 16 -c 2 /tmp/signal.wav synth $duration sin $frequency vol 5dB
 
-sox $input -t wav - sinc $(expr $frequency / 1000 - 5)k | sox -t wav - -t wav - gain -n $gain | sox -m -t wav -v 1 - -t wav -v 1 /tmp/signal.wav $output
+if [ "$play" == "true" ]
+then
+  sox $input -t wav - sinc $(expr $frequency / 1000 - 5)k | sox -t wav - -t wav - gain -n $gain | sox -m -t wav -v 1 - -t wav -v 1 /tmp/signal.wav -t wav /dev/stdout |  aplay -D hw:sndrpiwsp -
+else
+  sox $input -t wav - sinc $(expr $frequency / 1000 - 5)k | sox -t wav - -t wav - gain -n $gain | sox -m -t wav -v 1 - -t wav -v 1 /tmp/signal.wav $output
+fi
 
 rm /tmp/signal.wav
 
