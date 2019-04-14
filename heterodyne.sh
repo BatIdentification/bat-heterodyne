@@ -60,8 +60,6 @@ duration=$(soxi -D $input)
 
 sox -V -r $rate -n -b 16 -c 2 /tmp/signal.wav synth $duration sin $frequency vol 5dB
 
-echo $gain
-
 sox $input -t wav - sinc $(expr $frequency / 1000 - 5)k | sox -t wav - -t wav - gain -n $gain | sox -m -t wav -v 1 - -t wav -v 1 /tmp/signal.wav $output
 
 rm /tmp/signal.wav
