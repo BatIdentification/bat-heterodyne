@@ -60,18 +60,29 @@ fi
 #   exit 1
 # fi
 
-duration=$(soxi -D $input)
-
-sox -V -r $rate -n -b 16 -c 2 /tmp/signal.wav synth $duration sin $frequency vol 5dB
+duration=""
+if [ "$input" != "Live-" ]
+then
+  duration=$(soxi -D $input)
+  sox -V -r $rate -n -b 16 -c 2 -t wav /tmp/signal.wav synth $duration sin $frequency
+else
+  sox -V -r $rate -n -b 16 -c 2 -t wav /tmp/signal.wav synth sin $frequency &
+fi
 
 if [ "$play" == "true" ]
 then
-  sox $input -t wav - sinc $(expr $frequency / 1000 - 5)k | sox -t wav - -t wav - gain -n $gain | sox -m -t wav -v 1 - -t wav -v 1 /tmp/signal.wav -t wav /dev/stdout |  aplay -D hw:sndrpiwsp -
+  if [ "$input" == "Live-" ]
+  then
+    arecord -r 192000 -c 2 -f S16_LE | sox -t wav - -t wav - sinc 10k | sox -m -t wav -v 1 - -t wav -v 1 /tmp/signal.wav -t wav /dev/stdout | aplay -
+  else
+    sox $input -t wav - sinc $(expr $frequency / 1000 - 5)k | sox -t wav - -t wav - gain -n $gain | sox -m -t wav -v 1 - -t wav -v 1 /tmp/signal.wav -t wav /dev/stdout | aplay -
+  fi
 else
   sox $input -t wav - sinc $(expr $frequency / 1000 - 5)k | sox -t wav - -t wav - gain -n $gain | sox -m -t wav -v 1 - -t wav -v 1 /tmp/signal.wav $output
 fi
 
 rm /tmp/signal.wav
+pkill sox
 
 #What is important
 
